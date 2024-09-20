@@ -1,7 +1,7 @@
 // interface for data sent to /encode and payload returned from /decode
 export interface EncodingDecodedData {
     user: string;
-    data: any;  // any JSON object
+    data: unknown;  // any JSON object
 }
 
 // interface for response from /encode

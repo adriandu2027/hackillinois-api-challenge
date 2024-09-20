@@ -5,6 +5,9 @@ import { HackWebTokenModel } from '../../database/token-db';
 
 export const HackWebToken = getModelForClass(HackWebTokenModel);
 
+const AES_256_KEY_SIZE = 32;    // size in bytes
+const AES_IV_SIZE = 16;
+
 // fn to store enrcyption data (secret key, iv, and tokenId) in the db
 export async function storeEncryptionDataInDB(data: HackWebTokenData): Promise<void> {
     try {
@@ -24,8 +27,8 @@ export async function encodeHackWebToken(data: EncodingDecodedData): Promise<Enc
     const jsonPayload = JSON.stringify(data);
 
     // generate random secret key using aes-256
-    const secretKey = crypto.randomBytes(32);   // secret key is 32 bytes
-    const iv = crypto.randomBytes(16);
+    const secretKey = crypto.randomBytes(AES_256_KEY_SIZE);   // secret key is 32 bytes
+    const iv = crypto.randomBytes(AES_IV_SIZE);
 
     // create aes cipher corresponding our random key and iv
     const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, iv);
