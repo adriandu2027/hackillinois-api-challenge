@@ -16,7 +16,7 @@ import shopRouter from "./services/shop/shop-router";
 import staffRouter from "./services/staff/staff-router";
 import versionRouter from "./services/version/version-router";
 import userRouter from "./services/user/user-router";
-import tokenRouter from './services/hackwebtokens/token-router';
+import tokenRouter from "./services/hackwebtokens/token-router";
 
 // import { InitializeConfigReader } from "./middleware/config-reader";
 import { ErrorHandler } from "./middleware/error-handler";

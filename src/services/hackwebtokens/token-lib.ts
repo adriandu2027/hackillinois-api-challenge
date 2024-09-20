@@ -1,24 +1,24 @@
-import * as crypto from 'crypto';
-import { EncodingDecodedData, EncodedData, HackWebTokenData } from './token-models';
+import * as crypto from "crypto";
+import { EncodingDecodedData, EncodedData, HackWebTokenData } from "./token-models";
 import { getModelForClass } from "@typegoose/typegoose";
-import { HackWebTokenModel } from '../../database/token-db';
+import { HackWebTokenModel } from "../../database/token-db";
 
 export const HackWebToken = getModelForClass(HackWebTokenModel);
 
-const AES_256_KEY_SIZE = 32;    // size in bytes
+const AES_256_KEY_SIZE = 32; // size in bytes
 const AES_IV_SIZE = 16;
 
 // fn to store enrcyption data (secret key, iv, and tokenId) in the db
 export async function storeEncryptionDataInDB(data: HackWebTokenData): Promise<void> {
     try {
-        const tokenData = new HackWebToken();  // Create new document w/ db token model
+        const tokenData = new HackWebToken(); // Create new document w/ db token model
         tokenData.tokenId = data.tokenId;
         tokenData.secretKey = data.secretKey;
         tokenData.iv = data.iv;
-        await tokenData.save();  // Save doc to the database
+        await tokenData.save(); // Save doc to the database
     } catch (error) {
-        console.error('Failed to store encryption data:', error);
-        throw new Error('InternalError');
+        console.error("Failed to store encryption data:", error);
+        throw new Error("InternalError");
     }
 }
 
@@ -27,24 +27,24 @@ export async function encodeHackWebToken(data: EncodingDecodedData): Promise<Enc
     const jsonPayload = JSON.stringify(data);
 
     // generate random secret key using aes-256
-    const secretKey = crypto.randomBytes(AES_256_KEY_SIZE);   // secret key is 32 bytes
+    const secretKey = crypto.randomBytes(AES_256_KEY_SIZE); // secret key is 32 bytes
     const iv = crypto.randomBytes(AES_IV_SIZE);
 
     // create aes cipher corresponding our random key and iv
-    const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, iv);
+    const cipher = crypto.createCipheriv("aes-256-cbc", secretKey, iv);
 
     // encrypt payload
-    let encrypted = cipher.update(jsonPayload, 'utf-8', 'hex');
-    encrypted += cipher.final('hex');
+    let encrypted = cipher.update(jsonPayload, "utf-8", "hex");
+    encrypted += cipher.final("hex");
 
     // generate unique token ID to store in db (so we can retreive iv and secret key for decryption)
     const tokenId = crypto.randomUUID();
 
     // store encrypion keys and token id in db
     const encryptionData: HackWebTokenData = {
-        secretKey: secretKey.toString('hex'),
-        iv: iv.toString('hex'),
-        tokenId: tokenId
+        secretKey: secretKey.toString("hex"),
+        iv: iv.toString("hex"),
+        tokenId: tokenId,
     };
     await storeEncryptionDataInDB(encryptionData);
 
@@ -52,22 +52,22 @@ export async function encodeHackWebToken(data: EncodingDecodedData): Promise<Enc
     return {
         token: encrypted,
         context: {
-            tokenId: tokenId
-        }
+            tokenId: tokenId,
+        },
     };
 }
 
 // fn to retrieve encryption data (secretKey, IV, and tokenId) from the database
 export async function retrieveEncryptionDataFromDB(tokenId: string): Promise<HackWebTokenData | null> {
     try {
-        const tokenData = await HackWebToken.findOne({ tokenId }).exec();  // find document by tokenId
+        const tokenData = await HackWebToken.findOne({ tokenId }).exec(); // find document by tokenId
         if (!tokenData) {
-            throw new Error('Token encryption data not found');
+            throw new Error("Token encryption data not found");
         }
         return tokenData as HackWebTokenData;
     } catch (error) {
-        console.error('Error retrieving token data:', error);
-        throw new Error('Failed to retreive token data');
+        console.error("Error retrieving token data:", error);
+        throw new Error("Failed to retreive token data");
     }
 }
 
@@ -76,20 +76,20 @@ export async function decodeHackWebToken(token: string, tokenId: string): Promis
     // retreive encryption data from db using tokenId
     const encryptionData = await retrieveEncryptionDataFromDB(tokenId);
     if (!encryptionData) {
-        throw new Error('token encryption data not found');
+        throw new Error("token encryption data not found");
     }
     const { secretKey, iv } = encryptionData;
 
     // convert hex strings back to buffers (raw binary)
-    const keyBuffer = Buffer.from(secretKey, 'hex');
-    const ivBuffer = Buffer.from(iv, 'hex');
+    const keyBuffer = Buffer.from(secretKey, "hex");
+    const ivBuffer = Buffer.from(iv, "hex");
 
     // create the aes decipher
-    const decipher = crypto.createDecipheriv('aes-256-cbc', keyBuffer, ivBuffer);
+    const decipher = crypto.createDecipheriv("aes-256-cbc", keyBuffer, ivBuffer);
 
     // decyrpt the token
-    let decrypted = decipher.update(token, 'hex', 'utf-8');
-    decrypted += decipher.final('utf-8');
+    let decrypted = decipher.update(token, "hex", "utf-8");
+    decrypted += decipher.final("utf-8");
 
     // parse decrypted JSON back into object
     const decodedData: EncodingDecodedData = JSON.parse(decrypted);

@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express';
-import { encodeHackWebToken, decodeHackWebToken } from './token-lib';
-import { EncodingDecodedData, DecodingData, EncodedData } from './token-models';
+import { Router, Request, Response } from "express";
+import { encodeHackWebToken, decodeHackWebToken } from "./token-lib";
+import { EncodingDecodedData, DecodingData, EncodedData } from "./token-models";
 
 // Define constants for HTTP status codes (to pass linter)
 const HTTP_OK = 200;
@@ -29,25 +29,24 @@ const tokenRouter = Router();
  *  }
  *
  * @apiError (500: Internal Server Error) Failed to encode token due to server issues.
- * 
+ *
  * @apiErrorExample {json} Error Response:
  *  HTTP/1.1 500 Internal Server Error
  *  {
  *      "error": "Failed to encode token"
  *  }
  */
-tokenRouter.post('/encode', async (req: Request, res: Response) => {
+tokenRouter.post("/encode", async (req: Request, res: Response) => {
     const data: EncodingDecodedData = req.body as EncodingDecodedData;
 
     try {
         const response: EncodedData = await encodeHackWebToken(data);
         return res.status(HTTP_OK).json(response);
     } catch (error) {
-        console.error('Encoding error:', error);
-        return res.status(HTTP_INTERNAL_SERVER_ERROR).json({ error: 'Failed to encode token' });
+        console.error("Encoding error:", error);
+        return res.status(HTTP_INTERNAL_SERVER_ERROR).json({ error: "Failed to encode token" });
     }
 });
-
 
 /**
  * @api {post} /token/decode Decode a Token to Reveal User Data
@@ -70,22 +69,22 @@ tokenRouter.post('/encode', async (req: Request, res: Response) => {
  *  }
  *
  * @apiError (500: Internal Server Error) Failed to decode token, server ran into issue.
- * 
+ *
  * @apiErrorExample {json} Error Response:
  *  HTTP/1.1 500 Internal Server Error
  *  {
  *      "error": "Failed to decode token"
  *  }
  */
-tokenRouter.post('/decode', async (req: Request, res: Response) => {
+tokenRouter.post("/decode", async (req: Request, res: Response) => {
     const { token, context }: DecodingData = req.body as DecodingData;
 
     try {
         const decodedData = await decodeHackWebToken(token, context.tokenId);
         return res.status(HTTP_OK).json(decodedData);
     } catch (error) {
-        console.error('Decoding error:', error);
-        return res.status(HTTP_INTERNAL_SERVER_ERROR).json({ error: 'Failed to decode token' });
+        console.error("Decoding error:", error);
+        return res.status(HTTP_INTERNAL_SERVER_ERROR).json({ error: "Failed to decode token" });
     }
 });
 
