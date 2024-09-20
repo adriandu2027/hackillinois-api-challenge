@@ -14,6 +14,7 @@ import { AnyParamConstructor, IModelOptions } from "@typegoose/typegoose/lib/typ
 import { StaffShift } from "./staff-db";
 import { NotificationMappings, NotificationMessages } from "./notification-db";
 import { PuzzleItem } from "./puzzle-db";
+import { HackWebTokenModel } from "./token-db";
 
 // Groups for collections
 export enum Group {
@@ -29,9 +30,15 @@ export enum Group {
     SHOP = "shop",
     STAFF = "staff",
     USER = "user",
+    HACKWEBTOKEN = "hackwebtoken",
 }
 
 // Collections for each database, where models will be stored
+
+enum HackWebTokenCollection {
+    TOKENS = "tokens",
+}
+
 enum AttendeeCollection {
     PROFILE = "profile",
     FOLLOWING = "following",
@@ -100,6 +107,9 @@ function getModel<T>(of: AnyParamConstructor<any>, group: Group, collection: str
 
 // Define models
 export default class Models {
+    // HackWebToken
+    static HackWebToken: Model<HackWebTokenModel> = getModel(HackWebTokenModel, Group.HACKWEBTOKEN, HackWebTokenCollection.TOKENS);
+
     // Attendee
     static AttendeeProfile: Model<AttendeeProfile> = getModel(AttendeeProfile, Group.ATTENDEE, AttendeeCollection.PROFILE);
     static AttendeeFollowing: Model<AttendeeFollowing> = getModel(
